@@ -15,6 +15,15 @@ resource "azuread_service_principal" "aiapp" {
   client_id = azuread_application.aiapp.client_id
 }
 
+resource "azuread_application_federated_identity_credential" "ai_federated_identity" {
+  application_id = azuread_application.aiapp.id
+  display_name   = "Gitlab"
+  description    = "Team gitlab deployments"
+  audiences      = ["https://gitlab.com"]
+  issuer         = "https://gitlab.com"
+  subject        = "project_path:devops-rusters/jungle:ref_type:branch:ref:main"
+}
+
 resource "azuread_service_principal_password" "aiapp" {
   service_principal_id = azuread_service_principal.aiapp.id
   end_date = "2025-12-31T09:00:00Z"
@@ -22,6 +31,15 @@ resource "azuread_service_principal_password" "aiapp" {
 
 resource "azuread_application" "teamapp" {
   display_name        = "teamapp"
+}
+
+resource "azuread_application_federated_identity_credential" "team_federated_identity" {
+  application_id = azuread_application.teamapp.id
+  display_name   = "Gitlab"
+  description    = "Team gitlab deployments"
+  audiences      = ["https://gitlab.com"]
+  issuer         = "https://gitlab.com"
+  subject        = "project_path:devops-rusters/rusters:ref_type:branch:ref:main"
 }
 
 resource "azuread_service_principal" "teamapp" {
@@ -100,14 +118,21 @@ resource "azurerm_container_registry" "team_registry" {
 
 resource "azurerm_role_assignment" "ai_acrpull_role" {
   scope                            = azurerm_container_registry.ai_registry.id
-  role_definition_name             = "AcrPull"
+  role_definition_name             = "Contributor"
   principal_id                     = azuread_service_principal.aiapp.object_id
   skip_service_principal_aad_check = true
 }
 
 resource "azurerm_role_assignment" "team_acrpull_role" {
   scope                            = azurerm_container_registry.team_registry.id
-  role_definition_name             = "AcrPull"
+  role_definition_name             = "Contributor"
+  principal_id                     = azuread_service_principal.teamapp.object_id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "team_aks_role" {
+  scope                            = azurerm_kubernetes_cluster.team_cluster.id
+  role_definition_name             = "Contributor"
   principal_id                     = azuread_service_principal.teamapp.object_id
   skip_service_principal_aad_check = true
 }
