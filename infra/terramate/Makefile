@@ -1,6 +1,7 @@
 OPTIONS=--disable-check-git-uncommitted
 OPTIONS+=--disable-check-git-untracked
 PLAN_NAME=plan.tfplan
+TFVARS_FILE_NAME=secrets.tfvars
 DESTROY_PLAN_NAME=main.destroy.tfplan
 INIT_FILES=.terraform/modules/modules.json
 
@@ -25,8 +26,8 @@ apply_destroy: $(DESTROY_PLAN_NAME)
 $(INIT_FILES): *.tf $(MODULES_FILES)
 	terramate $(OPTIONS) run terraform init
 
-$(PLAN_NAME): $(INIT_FILES)
-	terramate $(OPTIONS) run terraform plan -out $@
+$(PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME)
+	terramate $(OPTIONS) run terraform plan -var-file=$(TFVARS_FILE_NAME) -out $@
 
-$(DESTROY_PLAN_NAME): $(INIT_FILES)
-	terramate $(OPTIONS) run terraform plan -destroy -out $@
+$(DESTROY_PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME)
+	terramate $(OPTIONS) run terraform plan -var-file=$(TFVARS_FILE_NAME) -destroy -out $@

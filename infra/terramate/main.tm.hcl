@@ -8,6 +8,26 @@ generate_hcl "main.tf" {
       byte_length = 8
     }
 
+    resource "azurerm_resource_group" "global_rg" {
+      location = "eastus"
+      name     = "Global-rg"
+    }
+
+    resource "azurerm_dns_zone" "parent" {
+      name                = "cs2024.one"
+      resource_group_name = azurerm_resource_group.global_rg.name
+
+      depends_on = [ azurerm_resource_group.global_rg ]
+    }
+
+    resource "namecheap_domain_records" "namecheap_domain" {
+      domain = azurerm_dns_zone.parent.name
+      mode = "OVERWRITE"
+      nameservers = azurerm_dns_zone.parent.name_servers
+
+      depends_on = [ azurerm_dns_zone.parent ]
+    }
+
     module "team_module" {
       for_each = { for team in local.teams : team.id => team }
 
@@ -15,6 +35,13 @@ generate_hcl "main.tf" {
 
       random_id = random_id.random.hex
       team_name = each.value.id
+
+      parent_dns = {
+        name = azurerm_dns_zone.parent.name
+        rg_name = azurerm_resource_group.global_rg.name
+      }
+
+      depends_on = [ azurerm_dns_zone.parent, azurerm_resource_group.global_rg]
     }
 
     tm_dynamic "module" {

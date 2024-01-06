@@ -23,6 +23,7 @@ module "team_cluster" {
   side_name = "team"
   team_name = var.team_name
   source = "../cluster"
+  parent_dns = var.parent_dns
 }
 
 module "ai_cluster" {
@@ -32,4 +33,5 @@ module "ai_cluster" {
   side_name = "ai"
   team_name = var.team_name
   source = "../cluster"
+  parent_dns = var.parent_dns
 }

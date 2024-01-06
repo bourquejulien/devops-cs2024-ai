@@ -14,7 +14,7 @@ IMAGE_NAME="${REPO_NAME}/${PROJECT_NAME}:${IMAGE_TAG}"
 az acr login -n "$ACR_NAME"
 docker build --target final -t "$IMAGE_NAME" -f ./Validation/Dockerfile .
 docker push "$IMAGE_NAME"
-az aks get-credentials --resource-group "CS-${TEAM_NAME}-rg" --name "${CLUSTER_NAME}-cluster"
+az aks get-credentials --resource-group "CS-${TEAM_NAME}-rg" --name "${CLUSTER_NAME}cluster"
 
 VARIABLES+=("--set=image.repository=\"${REPO_NAME}\"")
 VARIABLES+=("--set=image.tag=\"${IMAGE_TAG}\"")

@@ -20,6 +20,20 @@ resource "azuread_service_principal_password" "app" {
   end_date = "2025-12-31T09:00:00Z"
 }
 
+resource "azurerm_dns_zone" "dns" {
+  name                = "${var.side_name}${var.team_name}.${var.parent_dns.name}"
+  resource_group_name = var.rg_name
+}
+
+resource "azurerm_dns_ns_record" "ns_record" {
+  name                = "${var.side_name}${var.team_name}"
+  zone_name           = var.parent_dns.name
+  resource_group_name = var.parent_dns.rg_name
+  ttl                 = 60
+
+  records = azurerm_dns_zone.dns.name_servers
+}
+
 resource "azurerm_kubernetes_cluster" "cluster" {
   name                = "${var.side_name}cluster"
   location            = var.rg_location

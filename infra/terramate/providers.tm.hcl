@@ -22,11 +22,22 @@ generate_hcl "providers.tf" {
           source  = "gavinbunney/kubectl"
           version = ">= 1.7.0"
         }
+        namecheap = {
+          source = "namecheap/namecheap"
+          version = ">= 2.0.0"
+        }
       }
     }
 
     provider "azurerm" {
       features {}
+    }
+
+    provider "namecheap" {
+      user_name = var.namecheap_username
+      api_user = var.namecheap_username
+      api_key = var.namecheap_key
+      use_sandbox = false
     }
 
     tm_dynamic "provider" {

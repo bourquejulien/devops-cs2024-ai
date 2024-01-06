@@ -22,3 +22,10 @@ variable "random_id" {
     type = string
     description = "Random id to prevent name clashing."
 }
+
+variable "parent_dns" {
+  type = object({
+    name = string
+    rg_name = string
+  })
+} 
