@@ -36,6 +36,8 @@ resource "azurerm_kubernetes_cluster" "cluster" {
     client_id     = azuread_application.app.client_id
     client_secret = azuread_service_principal_password.app.value
   }
+
+  depends_on = [ azuread_application.app ]
 }
 
 resource "azurerm_container_registry" "registry" {
