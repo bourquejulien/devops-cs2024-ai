@@ -9,3 +9,8 @@ variable "team_name" {
     default = "00"
     description = "team_name"
 }
+
+variable "random_id" {
+    type = string
+    description = "Random id to prevent name clashing."
+}
