@@ -17,3 +17,8 @@ output "kube_ca_certificate" {
   value     = azurerm_kubernetes_cluster.cluster.kube_config.0.cluster_ca_certificate
   sensitive = true
 }
+
+output "static_ip" {
+  value     = azurerm_public_ip.ip.ip_address
+  sensitive = true
+}

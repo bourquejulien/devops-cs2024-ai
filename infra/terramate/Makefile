@@ -4,6 +4,7 @@ PLAN_NAME=plan.tfplan
 TFVARS_FILE_NAME=secrets.tfvars
 DESTROY_PLAN_NAME=main.destroy.tfplan
 INIT_FILES=.terraform/modules/modules.json
+STATE_FILES=terraform.tfstate
 
 MODULES_FILES:=$(shell find ../modules -name '*.tf')
 
@@ -26,8 +27,8 @@ apply_destroy: $(DESTROY_PLAN_NAME)
 $(INIT_FILES): *.tf $(MODULES_FILES)
 	terramate $(OPTIONS) run terraform init
 
-$(PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME)
+$(PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME) $(STATE_FILES)
 	terramate $(OPTIONS) run terraform plan -var-file=$(TFVARS_FILE_NAME) -out $@
 
-$(DESTROY_PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME)
+$(DESTROY_PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME) $(STATE_FILES)
 	terramate $(OPTIONS) run terraform plan -var-file=$(TFVARS_FILE_NAME) -destroy -out $@

@@ -50,7 +50,11 @@ generate_hcl "main.tf" {
       labels = ["nginx_ai_${module.value.id}"]
 
       content {
+        static_ip = tm_hcl_expression("module.team_module[\"${module.value.id}\"].ai_static_ip")
+        rg_name = tm_hcl_expression("module.team_module[\"${module.value.id}\"].rg_name")
+
         source = "../modules/nginx"
+        depends_on = [ tm_hcl_expression("module.team_module[\"${module.value.id}\"]") ]
         providers = {
           helm = tm_hcl_expression("helm.ai_${module.value.id}")
           kubectl = tm_hcl_expression("kubectl.ai_${module.value.id}")

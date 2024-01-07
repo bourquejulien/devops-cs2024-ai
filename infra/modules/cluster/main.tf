@@ -34,6 +34,22 @@ resource "azurerm_dns_ns_record" "ns_record" {
   records = azurerm_dns_zone.dns.name_servers
 }
 
+resource "azurerm_public_ip" "ip" {
+  name                = "${var.side_name}${var.team_name}ip"
+  location            = "East US"
+  resource_group_name = var.rg_name
+  allocation_method   = "Static"
+  sku = "Standard"
+}
+
+resource "azurerm_role_assignment" "network_contributor_role" {
+  scope                = var.rg_id
+  role_definition_name = "Network Contributor"
+  principal_id         = azuread_service_principal.app.object_id
+  # skip_service_principal_aad_check = true
+  depends_on = [ azuread_application.app ]
+}
+
 resource "azurerm_kubernetes_cluster" "cluster" {
   name                = "${var.side_name}cluster"
   location            = var.rg_location
@@ -51,14 +67,32 @@ resource "azurerm_kubernetes_cluster" "cluster" {
     client_secret = azuread_service_principal_password.app.value
   }
 
-  depends_on = [ azuread_application.app ]
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+
+    load_balancer_profile {
+      outbound_ip_address_ids = [ azurerm_public_ip.ip.id ]
+    }
+  }
+
+  depends_on = [ azurerm_public_ip.ip ]
+}
+
+resource "azurerm_dns_a_record" "a_record" {
+  name                = "@"
+  zone_name           = azurerm_dns_zone.dns.name
+  resource_group_name = var.rg_name
+  ttl                 = 300
+  records             = [ azurerm_public_ip.ip.ip_address ]
+  depends_on = [ azurerm_public_ip.ip ]
 }
 
 resource "azurerm_container_registry" "registry" {
   name                     = "${var.side_name}${var.team_name}${lower(var.random_id)}"
   resource_group_name      = var.rg_name
   location                 = var.rg_location
-  sku                      = "Basic"
+  sku                      = "Standard"
   admin_enabled            = false
 }
 

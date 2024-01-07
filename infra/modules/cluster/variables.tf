@@ -8,6 +8,11 @@ variable "rg_location" {
     description = "The location of the ressource group."
 }
 
+variable "rg_id" {
+    type = string
+    description = "The id of the ressource group."
+}
+
 variable "team_name" {
     type = string
     description = "The team name."

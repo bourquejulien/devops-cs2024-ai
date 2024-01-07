@@ -18,6 +18,7 @@ resource "azurerm_storage_table" "score_table" {
 
 module "team_cluster" {
   rg_name = azurerm_resource_group.rg.name
+  rg_id = azurerm_resource_group.rg.id
   rg_location = azurerm_resource_group.rg.location
   random_id = var.random_id
   side_name = "team"
@@ -29,6 +30,7 @@ module "team_cluster" {
 module "ai_cluster" {
   rg_name = azurerm_resource_group.rg.name
   rg_location = azurerm_resource_group.rg.location
+  rg_id = azurerm_resource_group.rg.id
   random_id = var.random_id
   side_name = "ai"
   team_name = var.team_name
