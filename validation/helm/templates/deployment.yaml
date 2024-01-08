@@ -36,17 +36,21 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.container.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.container.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /validation/healthz
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /validation/healthz
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

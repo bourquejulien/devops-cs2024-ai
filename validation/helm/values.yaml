@@ -2,12 +2,20 @@ replicaCount: 1
 
 image:
   repository: "***"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+container:
+  port: 3000
+  env:
+    - name: Kestrel__EndPoints__Http__Url
+      value: "http://**:3000/"
+    - name: BasePath
+      value: "/validation"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -41,11 +49,11 @@ service:
 ingress:
   enabled: true
   className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: /static(/|$)(.*)
+    - host: "..."
       paths:
         - path: /validation
           pathType: ImplementationSpecific
