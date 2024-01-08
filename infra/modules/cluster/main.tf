@@ -46,8 +46,8 @@ resource "azurerm_role_assignment" "network_contributor_role" {
   scope                = var.rg_id
   role_definition_name = "Network Contributor"
   principal_id         = azuread_service_principal.app.object_id
-  # skip_service_principal_aad_check = true
-  depends_on = [ azuread_application.app ]
+  skip_service_principal_aad_check = true
+  depends_on = [ azuread_service_principal.app ]
 }
 
 resource "azurerm_kubernetes_cluster" "cluster" {

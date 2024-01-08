@@ -8,12 +8,14 @@ resource "azurerm_storage_account" "table_account" {
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "GRS"
+  depends_on = [ azurerm_resource_group.rg ]
 }
 
 resource "azurerm_storage_table" "score_table" {
   name                 = "scoretable"
   storage_account_name = azurerm_storage_account.table_account.name
+  depends_on = [ azurerm_storage_account.table_account ]
 }
 
 module "team_cluster" {
@@ -25,6 +27,7 @@ module "team_cluster" {
   team_name = var.team_name
   source = "../cluster"
   parent_dns = var.parent_dns
+  depends_on = [ azurerm_resource_group.rg ]
 }
 
 module "ai_cluster" {
@@ -36,4 +39,5 @@ module "ai_cluster" {
   team_name = var.team_name
   source = "../cluster"
   parent_dns = var.parent_dns
+  depends_on = [ azurerm_resource_group.rg ]
 }
