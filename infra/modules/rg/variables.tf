@@ -1,6 +1,5 @@
-variable "resource_group_location" {
+variable "rg_location" {
   type        = string
-  default     = "eastus"
   description = "Location of the resource group."
 }
 

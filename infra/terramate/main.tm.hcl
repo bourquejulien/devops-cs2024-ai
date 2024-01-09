@@ -2,6 +2,8 @@ generate_hcl "main.tf" {
   content {
     locals {
       teams = global.teams
+      location = global.location
+      domain_name = global.domain_name
     }
 
     resource "random_id" "random" {
@@ -9,12 +11,12 @@ generate_hcl "main.tf" {
     }
 
     resource "azurerm_resource_group" "global_rg" {
-      location = "eastus"
+      location = local.location
       name     = "Global-rg"
     }
 
     resource "azurerm_dns_zone" "parent" {
-      name                = "cs2024.one"
+      name                = local.domain_name
       resource_group_name = azurerm_resource_group.global_rg.name
 
       depends_on = [ azurerm_resource_group.global_rg ]
@@ -28,6 +30,26 @@ generate_hcl "main.tf" {
       depends_on = [ azurerm_dns_zone.parent ]
     }
 
+    # resource "azurerm_static_site" "site" {
+    #   name                = "cs2024site"
+    #   resource_group_name = azurerm_resource_group.global_rg.name
+    #   location            = azurerm_resource_group.global_rg.location
+    # }
+
+    # resource "azurerm_dns_cname_record" "validation_cname" {
+    #   name                = local.domain_name
+    #   zone_name           = azurerm_dns_zone.parent.name
+    #   resource_group_name = azurerm_resource_group.global_rg.name
+    #   ttl                 = 300
+    #   record              = azurerm_static_site.site.default_host_name
+    # }
+
+    # resource "azurerm_static_site_custom_domain" "custom_domain" {
+    #   static_site_id  = azurerm_static_site.site.id
+    #   domain_name     = "${azurerm_dns_cname_record.validation_cname.name}.${azurerm_dns_cname_record.validation_cname.zone_name}"
+    #   validation_type = "cname-delegation"
+    # }
+
     module "team_module" {
       for_each = { for team in local.teams : team.id => team }
 
@@ -35,6 +57,7 @@ generate_hcl "main.tf" {
 
       random_id = random_id.random.hex
       team_name = each.value.id
+      rg_location = local.location
 
       parent_dns = {
         name = azurerm_dns_zone.parent.name

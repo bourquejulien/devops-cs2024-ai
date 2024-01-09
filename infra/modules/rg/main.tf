@@ -1,10 +1,10 @@
 resource "azurerm_resource_group" "rg" {
-  location = var.resource_group_location
+  location = var.rg_location
   name     = format("%s-%s-rg", "CS", var.team_name)
 }
 
 # resource "azuread_user" "example" {
-#   user_principal_name = "team${var.team_name}@cs2024.one"
+#   user_principal_name = "team${var.team_name}@${var.parent_dns.name}"
 #   display_name        = "Team${var.team_name}"
 #   mail_nickname       = "Team${var.team_name}"
 #   password            = "BeepBoop"
@@ -33,7 +33,7 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_private_dns_zone" "private_dns" {
-  name                = "ai.cs2024.one"
+  name                = "ai.${var.parent_dns.name}"
   resource_group_name = azurerm_resource_group.rg.name
 }
 
