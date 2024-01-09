@@ -13,6 +13,11 @@ variable "rg_id" {
     description = "The id of the ressource group."
 }
 
+variable "subnet_id" {
+    type = string
+    description = "The id of the subnet."
+}
+
 variable "team_name" {
     type = string
     description = "The team name."

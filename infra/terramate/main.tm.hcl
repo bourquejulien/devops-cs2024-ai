@@ -62,5 +62,24 @@ generate_hcl "main.tf" {
         }
       }
     }
+
+    tm_dynamic "module" {
+      for_each = global.teams
+
+      labels = ["nginx_team_${module.value.id}"]
+
+      content {
+        static_ip = tm_hcl_expression("module.team_module[\"${module.value.id}\"].team_static_ip")
+        rg_name = tm_hcl_expression("module.team_module[\"${module.value.id}\"].rg_name")
+
+        source = "../modules/nginx"
+        depends_on = [ tm_hcl_expression("module.team_module[\"${module.value.id}\"]") ]
+        providers = {
+          helm = tm_hcl_expression("helm.team_${module.value.id}")
+          kubectl = tm_hcl_expression("kubectl.team_${module.value.id}")
+          kubernetes = tm_hcl_expression("kubernetes.team_${module.value.id}")
+        }
+      }
+    }
   }
 }

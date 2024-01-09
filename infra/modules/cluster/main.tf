@@ -60,6 +60,8 @@ resource "azurerm_kubernetes_cluster" "cluster" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_B2s"
+    vnet_subnet_id = var.subnet_id
+    temporary_name_for_rotation = "tmpnodepool"
   }
 
   service_principal {
