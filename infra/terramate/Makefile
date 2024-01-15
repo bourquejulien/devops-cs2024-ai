@@ -27,8 +27,8 @@ apply_destroy: $(DESTROY_PLAN_NAME)
 $(INIT_FILES): *.tf $(MODULES_FILES)
 	terramate $(OPTIONS) run terraform init
 
-$(PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME) $(STATE_FILES)
+$(PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME) $(wildcard $(STATE_FILES))
 	terramate $(OPTIONS) run terraform plan -var-file=$(TFVARS_FILE_NAME) -out $@
 
-$(DESTROY_PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME) $(STATE_FILES)
+$(DESTROY_PLAN_NAME): $(INIT_FILES) $(TFVARS_FILE_NAME) $(wildcard $(STATE_FILES))
 	terramate $(OPTIONS) run terraform plan -var-file=$(TFVARS_FILE_NAME) -destroy -out $@

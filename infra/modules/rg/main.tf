@@ -3,13 +3,6 @@ resource "azurerm_resource_group" "rg" {
   name     = format("%s-%s-rg", "CS", var.team_name)
 }
 
-# resource "azuread_user" "example" {
-#   user_principal_name = "team${var.team_name}@${var.parent_dns.name}"
-#   display_name        = "Team${var.team_name}"
-#   mail_nickname       = "Team${var.team_name}"
-#   password            = "BeepBoop"
-# }
-
 resource "azurerm_storage_account" "table_account" {
   name                     = "ta${var.team_name}${lower(var.random_id)}"
   resource_group_name      = azurerm_resource_group.rg.name
@@ -30,11 +23,13 @@ resource "azurerm_virtual_network" "vnet" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = ["10.30.0.0/16"]
+  depends_on = [ azurerm_resource_group.rg ]
 }
 
 resource "azurerm_private_dns_zone" "private_dns" {
   name                = "ai.${var.parent_dns.name}"
   resource_group_name = azurerm_resource_group.rg.name
+  depends_on = [ azurerm_resource_group.rg ]
 }
 
 resource "azurerm_private_dns_a_record" "a_record" {
@@ -51,6 +46,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_link" {
   resource_group_name   = azurerm_resource_group.rg.name
   private_dns_zone_name = azurerm_private_dns_zone.private_dns.name
   virtual_network_id    = azurerm_virtual_network.vnet.id
+  depends_on = [ azurerm_private_dns_zone.private_dns, azurerm_virtual_network.vnet ]
 }
 
 resource "azurerm_subnet" "team" {
@@ -78,6 +74,7 @@ module "team_cluster" {
   side_name = "team"
   team_name = var.team_name
   source = "../cluster"
+  is_team_cluster = true
   parent_dns = var.parent_dns
   depends_on = [ azurerm_resource_group.rg, azurerm_subnet.team ]
 }
@@ -91,6 +88,7 @@ module "ai_cluster" {
   side_name = "ai"
   team_name = var.team_name
   source = "../cluster"
+  is_team_cluster = false
   parent_dns = var.parent_dns
   depends_on = [ azurerm_resource_group.rg, azurerm_subnet.team]
 }

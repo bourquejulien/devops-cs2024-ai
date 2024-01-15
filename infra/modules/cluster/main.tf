@@ -4,6 +4,20 @@ resource "azuread_application" "app" {
 
 resource "azuread_service_principal" "app" {
   client_id = azuread_application.app.client_id
+  depends_on = [ azuread_application.app ]
+}
+
+resource "azuread_service_principal_password" "app" {
+  service_principal_id = azuread_service_principal.app.id
+  end_date = "2025-12-31T09:00:00Z"
+}
+
+resource "azuread_user" "team_user" {
+  count = var.is_team_cluster ? 1 : 0
+  user_principal_name = "team${var.team_name}@${var.parent_dns.name}"
+  display_name        = "Team${var.team_name}"
+  mail_nickname       = "Team${var.team_name}"
+  password            = "SecretP@sswd99!"
 }
 
 resource "azuread_application_federated_identity_credential" "federated_identity" {
@@ -13,11 +27,6 @@ resource "azuread_application_federated_identity_credential" "federated_identity
   audiences      = ["https://gitlab.com"]
   issuer         = "https://gitlab.com"
   subject        = "project_path:devops-rusters/jungle:ref_type:branch:ref:main" # TODO
-}
-
-resource "azuread_service_principal_password" "app" {
-  service_principal_id = azuread_service_principal.app.id
-  end_date = "2025-12-31T09:00:00Z"
 }
 
 resource "azurerm_dns_zone" "dns" {
@@ -110,4 +119,18 @@ resource "azurerm_role_assignment" "aks_role" {
   role_definition_name             = "Contributor"
   principal_id                     = azuread_service_principal.app.object_id
   skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "acr_role_user" {
+  count = var.is_team_cluster ? 1 : 0
+  scope                            = azurerm_container_registry.registry.id
+  role_definition_name             = "Contributor"
+  principal_id                     = azuread_user.team_user[0].object_id
+}
+
+resource "azurerm_role_assignment" "aks_role_user" {
+  count = var.is_team_cluster ? 1 : 0
+  scope                            = azurerm_kubernetes_cluster.cluster.id
+  role_definition_name             = "Contributor"
+  principal_id                     = azuread_user.team_user[0].object_id
 }

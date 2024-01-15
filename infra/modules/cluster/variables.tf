@@ -33,6 +33,11 @@ variable "random_id" {
     description = "Random id to prevent name clashing."
 }
 
+variable "is_team_cluster" {
+    type = bool
+    description = "True for team cluster, false for AI cluster."
+}
+
 variable "parent_dns" {
   type = object({
     name = string

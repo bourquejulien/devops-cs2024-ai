@@ -4,6 +4,8 @@ generate_hcl "main.tf" {
       teams = global.teams
       location = global.location
       domain_name = global.domain_name
+      dev_subdomain = global.dev_subdomain
+      dev_domain_name = global.dev_domain_name
     }
 
     resource "random_id" "random" {
@@ -16,39 +18,39 @@ generate_hcl "main.tf" {
     }
 
     resource "azurerm_dns_zone" "parent" {
-      name                = local.domain_name
+      name                = local.dev_domain_name
       resource_group_name = azurerm_resource_group.global_rg.name
 
       depends_on = [ azurerm_resource_group.global_rg ]
     }
 
-    resource "namecheap_domain_records" "namecheap_domain" {
-      domain = azurerm_dns_zone.parent.name
-      mode = "OVERWRITE"
-      nameservers = azurerm_dns_zone.parent.name_servers
+    resource "azurerm_dns_txt_record" "validation_record" {
+      name                = "@"
+      zone_name           = azurerm_dns_zone.parent.name
+      resource_group_name = azurerm_resource_group.global_rg.name
+      ttl                 = 3600
+      
+      record {
+        value = "MS=ms96251819"
+      }
 
       depends_on = [ azurerm_dns_zone.parent ]
     }
 
-    # resource "azurerm_static_site" "site" {
-    #   name                = "cs2024site"
-    #   resource_group_name = azurerm_resource_group.global_rg.name
-    #   location            = azurerm_resource_group.global_rg.location
-    # }
+    resource "namecheap_domain_records" "namecheap_domain" {
+      domain = local.domain_name
+      mode = "OVERWRITE"
+      # nameservers = azurerm_dns_zone.parent.name_servers
 
-    # resource "azurerm_dns_cname_record" "validation_cname" {
-    #   name                = local.domain_name
-    #   zone_name           = azurerm_dns_zone.parent.name
-    #   resource_group_name = azurerm_resource_group.global_rg.name
-    #   ttl                 = 300
-    #   record              = azurerm_static_site.site.default_host_name
-    # }
+      record {
+        hostname = local.dev_subdomain
+        type = "NS"
+        address = tolist(azurerm_dns_zone.parent.name_servers)[0]
+        ttl = 60
+      }
 
-    # resource "azurerm_static_site_custom_domain" "custom_domain" {
-    #   static_site_id  = azurerm_static_site.site.id
-    #   domain_name     = "${azurerm_dns_cname_record.validation_cname.name}.${azurerm_dns_cname_record.validation_cname.zone_name}"
-    #   validation_type = "cname-delegation"
-    # }
+      depends_on = [ azurerm_dns_zone.parent  ]
+    }
 
     module "team_module" {
       for_each = { for team in local.teams : team.id => team }
