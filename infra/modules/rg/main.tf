@@ -27,17 +27,26 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_private_dns_zone" "private_dns" {
-  name                = "ai.${var.parent_dns.name}"
+  name                = "private.${var.parent_dns.name}"
   resource_group_name = azurerm_resource_group.rg.name
   depends_on = [ azurerm_resource_group.rg ]
 }
 
-resource "azurerm_private_dns_a_record" "a_record" {
-  name                = "@"
+resource "azurerm_private_dns_a_record" "ai_a_record" {
+  name                = "ai"
   zone_name           = azurerm_private_dns_zone.private_dns.name
   resource_group_name = azurerm_resource_group.rg.name
   ttl                 = 300
   records             = [ "10.30.11.10" ] # Set in validation service
+  depends_on = [ azurerm_private_dns_zone.private_dns ]
+}
+
+resource "azurerm_private_dns_a_record" "team_a_record" {
+  name                = "team"
+  zone_name           = azurerm_private_dns_zone.private_dns.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = [ "10.30.10.10" ] # Set in team service
   depends_on = [ azurerm_private_dns_zone.private_dns ]
 }
 
@@ -49,19 +58,19 @@ resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_link" {
   depends_on = [ azurerm_private_dns_zone.private_dns, azurerm_virtual_network.vnet ]
 }
 
-resource "azurerm_subnet" "team" {
-  name                 = "team"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.30.10.0/24"]
-  depends_on = [ azurerm_virtual_network.vnet ]
-}
-
 resource "azurerm_subnet" "ai" {
   name                 = "ai"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.30.11.0/24"]
+  depends_on = [ azurerm_virtual_network.vnet ]
+}
+
+resource "azurerm_subnet" "team" {
+  name                 = "team"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.30.10.0/24"]
   depends_on = [ azurerm_virtual_network.vnet ]
 }
 
