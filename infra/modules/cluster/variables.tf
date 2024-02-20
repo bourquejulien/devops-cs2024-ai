@@ -40,6 +40,7 @@ variable "is_team_cluster" {
 
 variable "parent_dns" {
   type = object({
+    main_dns_name = string
     name = string
     rg_name = string
   })

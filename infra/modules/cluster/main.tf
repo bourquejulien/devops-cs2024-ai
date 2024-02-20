@@ -7,6 +7,11 @@ resource "azuread_service_principal" "app" {
   depends_on = [ azuread_application.app ]
 }
 
+resource "time_sleep" "service_principal_propagation" {
+  depends_on = [azuread_service_principal.app]
+  create_duration = "30s"
+}
+
 resource "azuread_service_principal_password" "app" {
   service_principal_id = azuread_service_principal.app.id
   end_date = "2025-12-31T09:00:00Z"
@@ -14,20 +19,20 @@ resource "azuread_service_principal_password" "app" {
 
 resource "azuread_user" "team_user" {
   count = var.is_team_cluster ? 1 : 0
-  user_principal_name = "team${var.team_name}@${var.parent_dns.name}"
+  user_principal_name = "team${var.team_name}@${var.parent_dns.main_dns_name}"
   display_name        = "Team${var.team_name}"
   mail_nickname       = "Team${var.team_name}"
   password            = "SecretP@sswd99!"
 }
 
-resource "azuread_application_federated_identity_credential" "federated_identity" {
-  application_id = azuread_application.app.id
-  display_name   = "Gitlab"
-  description    = "Gitlab deployments"
-  audiences      = ["https://gitlab.com"]
-  issuer         = "https://gitlab.com"
-  subject        = "project_path:devops-rusters/jungle:ref_type:branch:ref:main" # TODO
-}
+# resource "azuread_application_federated_identity_credential" "federated_identity" {
+#   application_id = azuread_application.app.id
+#   display_name   = "Gitlab"
+#   description    = "Gitlab deployments"
+#   audiences      = ["https://gitlab.com"]
+#   issuer         = "https://gitlab.com"
+#   subject        = "project_path:devops-rusters/jungle:ref_type:branch:ref:main" # TODO
+# }
 
 resource "azurerm_dns_zone" "dns" {
   name                = "${var.side_name}${var.team_name}.${var.parent_dns.name}"
@@ -87,7 +92,7 @@ resource "azurerm_kubernetes_cluster" "cluster" {
     }
   }
 
-  depends_on = [ azurerm_public_ip.ip ]
+  depends_on = [ azurerm_public_ip.ip, azuread_application.app, time_sleep.service_principal_propagation ]
 }
 
 resource "azurerm_dns_a_record" "a_record" {

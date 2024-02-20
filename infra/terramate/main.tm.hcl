@@ -62,6 +62,7 @@ generate_hcl "main.tf" {
       rg_location = local.location
 
       parent_dns = {
+        main_dns_name = local.domain_name
         name = azurerm_dns_zone.parent.name
         rg_name = azurerm_resource_group.global_rg.name
       }
