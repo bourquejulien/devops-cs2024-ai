@@ -1,4 +1,4 @@
-ARG NAME=rusters
+ARG NAME=map
 
 FROM rust:1.75 as build
 ARG NAME
