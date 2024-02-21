@@ -1,3 +1,5 @@
+using Validation.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
@@ -5,6 +7,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
+builder.Services.AddSingleton<DoorService>();
+builder.Services.AddHostedService<DoorService>(provider => provider.GetService<DoorService>()!);
 
 var app = builder.Build();
 

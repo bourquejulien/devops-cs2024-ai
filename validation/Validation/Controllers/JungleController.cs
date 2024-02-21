@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Validation.Services;
 
 namespace Validation.Controllers;
 
@@ -7,8 +8,13 @@ namespace Validation.Controllers;
 public class JungleController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly DoorService _doorService;
 
-    public JungleController(IHttpClientFactory httpClientFactory) => _httpClientFactory = httpClientFactory;
+    public JungleController(IHttpClientFactory httpClientFactory, DoorService doorService)
+    {
+        _httpClientFactory = httpClientFactory;
+        _doorService = doorService;
+    }
     
     [HttpGet]
     public async Task<IActionResult> Get()
@@ -23,5 +29,25 @@ public class JungleController : Controller
 
         var result = await httpResponseMessage.Content.ReadAsStringAsync();
         return Ok(result);
+    }
+    
+    [HttpGet]
+    [Route("unlock")]
+    public async Task<IActionResult> Unlock([FromQuery] string password)
+    {
+        var result = _doorService.Get(password);
+        
+        using var httpClient = _httpClientFactory.CreateClient();
+        
+        var content = JsonContent.Create(new { isSuccess = result.IsSuccess, result = result.Description });
+        var httpResponseMessage = await httpClient.PostAsync("http://jungle/unlock", content);
+
+        if (!httpResponseMessage.IsSuccessStatusCode)
+        {
+            return NotFound("Pod not found...");
+        }
+
+        var httpResult = await httpResponseMessage.Content.ReadAsStringAsync();
+        return Ok(httpResult);
     }
 }
