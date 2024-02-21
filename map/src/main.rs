@@ -1,3 +1,4 @@
+use std::env;
 use axum::{Json, Router, routing::get};
 use axum::extract::Query;
 use axum::http::StatusCode;
@@ -36,7 +37,7 @@ async fn main() {
                     .level(Level::INFO)),
         );
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:7000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}", port=get_port())).await.unwrap();
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app)
@@ -53,6 +54,18 @@ async fn get_map(query: Option<Query<Request>>) -> (StatusCode, Response) {
         Ok(map) => {(StatusCode::OK, Json(json!({ "map": map })).into_response())}
         Err(err) => {(StatusCode::BAD_REQUEST, err.into_response())}
     }
+}
+
+fn get_port() -> String {
+    if let Ok(var) =  env::var("PORT") {
+        return var;
+    }
+
+    if cfg!(debug_assertions) {
+        return String::from("7000");
+    }
+
+    return String::from("80");
 }
 
 async fn shutdown_signal() {

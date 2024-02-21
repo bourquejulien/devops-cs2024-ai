@@ -14,7 +14,7 @@ pub fn get_map(coords: &Coordinates, size: usize) -> Result<Map, String> {
         return Err("Map must be of odd size".to_string());
     }
 
-    let num = ((coords.x + coords.y) * 4f64).floor() as i64;
+    let num = ((coords.x + coords.y) * 1e5f64).floor() as i64;
     let digest = md5::compute(num.to_string());
 
     let mut map: Map = vec![vec![0; size]; size];

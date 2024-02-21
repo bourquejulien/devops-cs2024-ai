@@ -18,7 +18,7 @@ RUN cargo build --release
 
 FROM rust:1.75-slim-bookworm as final
 ARG NAME
-EXPOSE 7000
+EXPOSE 80
 
 WORKDIR /app
 COPY --from=build /$NAME/target/release/$NAME app
