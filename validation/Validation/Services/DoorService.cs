@@ -3,7 +3,7 @@ using Validation.Classes;
 
 namespace Validation.Services;
 
-record History(string hash, string Password, DateTime Time);
+record History(string Hash, string Password, DateTime Time);
 
 public class DoorService : IHostedService
 {
@@ -22,22 +22,28 @@ public class DoorService : IHostedService
     {
         if (!_passwords.TryGetValue(hash, out var password))
         {
+            _logger.LogWarning("Failed to find hash: {}", hash);
             return;
         }
         
         _history[password] = new History(hash, password, DateTime.UtcNow);
+        _logger.LogInformation("Added hash {} with password {}", hash, password);
     }
 
     public Result Get(string password)
     {
         if (!_history.TryGetValue(password, out var history))
         {
-            return new Result(false, "Bad HASH");
+            _logger.LogInformation("Cannot find password: {}", password);
+            return new Result(false, "Bad hash");
         }
 
-        if (history.Time < (DateTime.UtcNow - TimeSpan.FromMilliseconds(2)))
+        _history.Remove(password, out _);
+
+        var duration = DateTime.UtcNow - history.Time;
+        if (duration > TimeSpan.FromMilliseconds(500))
         {
-            return new Result(false, "Too slow");
+            return new Result(false, $"Too slow, took {duration.TotalMilliseconds}ms");
         }
         
         return new Result(true, "Good job!");
@@ -61,7 +67,7 @@ public class DoorService : IHostedService
         var passwordsHashed = await File.ReadAllLinesAsync(PASSWORD_PATH, ct);
         var passwords = await File.ReadAllLinesAsync(HASH_PATH, ct);
 
-        foreach (var (hash, password) in passwordsHashed.Zip(passwords))
+        foreach (var (password, hash) in passwordsHashed.Zip(passwords))
         {
             _passwords.Add(hash, password);
         }

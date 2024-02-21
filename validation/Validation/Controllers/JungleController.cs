@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Validation.Services;
 
@@ -31,22 +33,22 @@ public class JungleController : Controller
         return Ok(result);
     }
     
-    [HttpGet]
+    [HttpPost]
     [Route("unlock")]
     public async Task<IActionResult> Unlock([FromQuery] string password)
     {
         var result = _doorService.Get(password);
         
         using var httpClient = _httpClientFactory.CreateClient();
-        
-        var content = JsonContent.Create(new { isSuccess = result.IsSuccess, result = result.Description });
-        var httpResponseMessage = await httpClient.PostAsync("http://jungle/unlock", content);
 
+        var content = new StringContent(JsonSerializer.Serialize(new { isSuccess = result.IsSuccess, result = result.Description }), Encoding.UTF8, "application/json");
+        var httpResponseMessage = await httpClient.PostAsync("http://jungle/unlock", content);
+        
         if (!httpResponseMessage.IsSuccessStatusCode)
         {
             return NotFound("Pod not found...");
         }
-
+        
         var httpResult = await httpResponseMessage.Content.ReadAsStringAsync();
         return Ok(httpResult);
     }
