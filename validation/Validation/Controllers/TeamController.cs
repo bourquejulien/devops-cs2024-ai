@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Validation.Controllers;
@@ -10,15 +11,22 @@ public class TeamController : Controller
 
     public TeamController(IHttpClientFactory httpClientFactory) => _httpClientFactory = httpClientFactory;
     
-    [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] string request, [FromQuery] string address, CancellationToken ct)
+    [HttpPost]
+    public async Task<IActionResult> Get([FromQuery] string request, CancellationToken ct)
     {
+        StringContent stringContent;
+        using (var reader = new StreamReader(Request.Body, encoding: Encoding.UTF8, detectEncodingFromByteOrderMarks: false))
+        {
+            stringContent = new StringContent(await reader.ReadToEndAsync(ct));
+        }
+        
         using var httpClient = _httpClientFactory.CreateClient();
         
         var httpRequestMessage = new HttpRequestMessage
         {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri($"http://team.private.dev.cs2024.one/router?request={request}&address={address}"),
+            Content = stringContent,
+            Method = HttpMethod.Post,
+            RequestUri = new Uri($"http://team.private.dev.cs2024.one/router?request={request}")
         };
         
         var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, ct);
