@@ -12,12 +12,18 @@ public class TeamController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DoorService _doorService;
+    private readonly GradingService _gradingService;
     private readonly ILogger<TeamController> _logger;
 
-    public TeamController(IHttpClientFactory httpClientFactory, DoorService doorService, ILogger<TeamController> logger)
+    public TeamController(
+        IHttpClientFactory httpClientFactory,
+        DoorService doorService,
+        GradingService gradingService,
+        ILogger<TeamController> logger)
     {
         _httpClientFactory = httpClientFactory;
         _doorService = doorService;
+        _gradingService = gradingService;
         _logger = logger;
     }
     
@@ -30,10 +36,9 @@ public class TeamController : Controller
             payload = await reader.ReadToEndAsync(ct);
         }
         
-        HandlePayload(request, payload);
+        HandleRequestPayload(request, payload);
         
         using var httpClient = _httpClientFactory.CreateClient();
-        
         var httpRequestMessage = new HttpRequestMessage
         {
             Content = new StringContent(payload),
@@ -43,7 +48,8 @@ public class TeamController : Controller
         
         var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, ct);
 
-        if (!httpResponseMessage.IsSuccessStatusCode)
+        var isSuccess = await HandleResponsePayload(request, await httpResponseMessage.Content.ReadAsStringAsync(ct), httpResponseMessage.IsSuccessStatusCode, ct);
+        if(!isSuccess)
         {
             return NotFound("Pod service not found...");
         }
@@ -52,7 +58,7 @@ public class TeamController : Controller
         return Ok(result);
     }
 
-    private void HandlePayload(string request, string payload)
+    private void HandleRequestPayload(string request, string payload)
     {
         switch (request)
         {
@@ -60,8 +66,45 @@ public class TeamController : Controller
                 HandleDoor(payload);
                 break;
             default:
-                break;
+                return;
         }
+    }
+    
+    private async Task<bool> HandleResponsePayload(string request, string payload, bool isSuccess, CancellationToken ct)
+    {
+        switch (request)
+        {
+            case "status":
+                _gradingService.SetStatus("status", isSuccess);
+                return isSuccess;
+            case "map":
+                return HandleMap(payload, isSuccess);
+            case "weather":
+                return await HandleWeather(payload, isSuccess, ct);
+            default:
+                return isSuccess;
+        }
+    }
+
+    private async Task<bool> HandleWeather(string payload, bool isSuccess, CancellationToken ct)
+    {
+        await Task.CompletedTask;
+        if (!isSuccess)
+        {
+            return false;
+        }
+
+        return true;
+    }
+    
+    private bool HandleMap(string payload, bool isSuccess)
+    {
+        if (!isSuccess)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void HandleDoor(string payload)
@@ -73,7 +116,7 @@ public class TeamController : Controller
         }
         catch (Exception e)
         {
-            _logger.LogWarning("Failed to parse door payload");
+            _logger.LogWarning(e, "Failed to parse door payload");
             throw;
         }
 

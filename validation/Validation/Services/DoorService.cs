@@ -8,12 +8,14 @@ record History(string Hash, string Password, DateTime Time);
 public class DoorService : IHostedService
 {
     private readonly ILogger<DoorService> _logger;
+    private readonly GradingService _gradingService;
     private Dictionary<string, string> _passwords;
     private ConcurrentDictionary<string, History> _history;
     
-    public DoorService(ILogger<DoorService> logger)
+    public DoorService(ILogger<DoorService> logger, GradingService gradingService)
     {
         _logger = logger;
+        _gradingService = gradingService;
         _passwords = new Dictionary<string, string>();
         _history = new ConcurrentDictionary<string, History>();
     }
@@ -35,6 +37,7 @@ public class DoorService : IHostedService
         if (!_history.TryGetValue(password, out var history))
         {
             _logger.LogInformation("Cannot find password: {}", password);
+            _gradingService.SetStatus("door", false, "Bad hash");
             return new Result(false, "Bad hash");
         }
 
@@ -43,8 +46,11 @@ public class DoorService : IHostedService
         var duration = DateTime.UtcNow - history.Time;
         if (duration > TimeSpan.FromMilliseconds(500))
         {
+            _gradingService.SetStatus("door", false, "Too slow");
             return new Result(false, $"Too slow, took {duration.TotalMilliseconds}ms");
         }
+
+        _gradingService.SetStatus("door", true);
         
         return new Result(true, "Good job!");
     }

@@ -7,7 +7,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
+builder.Services.AddSingleton<GradingService>();
+builder.Services.AddSingleton<WeatherService>();
 builder.Services.AddSingleton<DoorService>();
+builder.Services.AddSingleton<MapService>();
 builder.Services.AddHostedService<DoorService>(provider => provider.GetService<DoorService>()!);
 
 var app = builder.Build();

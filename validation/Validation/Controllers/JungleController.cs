@@ -11,11 +11,13 @@ public class JungleController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DoorService _doorService;
+    private readonly GradingService _gradingService;
 
-    public JungleController(IHttpClientFactory httpClientFactory, DoorService doorService)
+    public JungleController(IHttpClientFactory httpClientFactory, DoorService doorService, GradingService gradingService)
     {
         _httpClientFactory = httpClientFactory;
         _doorService = doorService;
+        _gradingService = gradingService;
     }
     
     [HttpGet]
@@ -29,6 +31,7 @@ public class JungleController : Controller
             return NotFound("Pod not found...");
         }
 
+        _gradingService.SetStatus("status", true);
         var result = await httpResponseMessage.Content.ReadAsStringAsync();
         return Ok(result);
     }
