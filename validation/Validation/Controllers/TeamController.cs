@@ -48,14 +48,14 @@ public class TeamController : Controller
         
         var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, ct);
 
-        var isSuccess = await HandleResponsePayload(request, await httpResponseMessage.Content.ReadAsStringAsync(ct), httpResponseMessage.IsSuccessStatusCode, ct);
-        if(!isSuccess)
+        var result = await HandleResponsePayload(request, await httpResponseMessage.Content.ReadAsStringAsync(ct), httpResponseMessage.IsSuccessStatusCode, ct);
+        if(!result.IsSuccess)
         {
-            return NotFound("Pod service not found...");
+            return NotFound(result.Description ?? "Request failed...");
         }
 
-        var result = await httpResponseMessage.Content.ReadAsStringAsync(ct);
-        return Ok(result);
+        var responsePayload = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+        return Ok(responsePayload);
     }
 
     private void HandleRequestPayload(string request, string payload)
@@ -70,41 +70,41 @@ public class TeamController : Controller
         }
     }
     
-    private async Task<bool> HandleResponsePayload(string request, string payload, bool isSuccess, CancellationToken ct)
+    private async Task<Result> HandleResponsePayload(string request, string payload, bool isSuccess, CancellationToken ct)
     {
         switch (request)
         {
             case "status":
                 _gradingService.SetStatus("status", isSuccess);
-                return isSuccess;
+                return new Result(isSuccess);
             case "map":
                 return HandleMap(payload, isSuccess);
             case "weather":
                 return await HandleWeather(payload, isSuccess, ct);
             default:
-                return isSuccess;
+                return new Result(isSuccess);
         }
     }
 
-    private async Task<bool> HandleWeather(string payload, bool isSuccess, CancellationToken ct)
+    private async Task<Result> HandleWeather(string payload, bool isSuccess, CancellationToken ct)
     {
         await Task.CompletedTask;
         if (!isSuccess)
         {
-            return false;
+            return new Result(false, "Request failed");
         }
 
-        return true;
+        return new Result(isSuccess);
     }
     
-    private bool HandleMap(string payload, bool isSuccess)
+    private Result HandleMap(string payload, bool isSuccess)
     {
         if (!isSuccess)
         {
-            return false;
+            return new Result(false, "Request failed");
         }
 
-        return true;
+        return new Result(isSuccess);
     }
 
     private void HandleDoor(string payload)
