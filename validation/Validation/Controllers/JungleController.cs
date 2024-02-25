@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Validation.Classes;
 using Validation.Services;
 
 namespace Validation.Controllers;
@@ -28,10 +29,12 @@ public class JungleController : Controller
 
         if (!httpResponseMessage.IsSuccessStatusCode)
         {
-            return NotFound("Pod not found...");
+            const string message = "Pod not found";
+            _gradingService.SetStatus("status", new Result(false, message));
+            return NotFound(message);
         }
 
-        _gradingService.SetStatus("status", true);
+        _gradingService.SetStatus("status", new Result(true));
         var result = await httpResponseMessage.Content.ReadAsStringAsync();
         return Ok(result);
     }

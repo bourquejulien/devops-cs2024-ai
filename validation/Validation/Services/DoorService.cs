@@ -37,8 +37,9 @@ public class DoorService : IHostedService
         if (!_history.TryGetValue(password, out var history))
         {
             _logger.LogInformation("Cannot find password: {}", password);
-            _gradingService.SetStatus("door", false, "Bad hash");
-            return new Result(false, "Bad hash");
+            var result = new Result(false, "Bad hash");
+            _gradingService.SetStatus("door", result);
+            return result;
         }
 
         _history.Remove(password, out _);
@@ -46,11 +47,12 @@ public class DoorService : IHostedService
         var duration = DateTime.UtcNow - history.Time;
         if (duration > TimeSpan.FromMilliseconds(500))
         {
-            _gradingService.SetStatus("door", false, "Too slow");
-            return new Result(false, $"Too slow, took {duration.TotalMilliseconds}ms");
+            var result = new Result(false, $"Too slow, took {duration.TotalMilliseconds}ms");
+            _gradingService.SetStatus("door", result);
+            return result;
         }
 
-        _gradingService.SetStatus("door", true);
+        _gradingService.SetStatus("door", new Result(true));
         
         return new Result(true, "Good job!");
     }

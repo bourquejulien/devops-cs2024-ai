@@ -1,3 +1,3 @@
 namespace Validation.Classes;
 
-public record MapRequest(double X, double Y, int Size);
+public record MapRequest(double x, double y, int size);

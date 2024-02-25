@@ -16,51 +16,53 @@ public class WeatherService
         _httpClientFactory = httpHttpClientFactory;
     }
 
-    public async Task<bool> CheckWeather(Weather weather, CancellationToken ct)
+    public async Task<Result> CheckWeather(Location location, Weather weather, CancellationToken ct)
     {
-        var isValid = await ValidateWeather(weather, ct);
+        var isValid = await ValidateWeather(location, weather, ct);
         _gradingService.SetStatus("weather", isValid);
         return isValid;
     }
 
-    private async Task<bool> ValidateWeather(Weather weather, CancellationToken ct)
+    private async Task<Result> ValidateWeather(Location location, Weather weather, CancellationToken ct)
     {
-        const string request = "https://api.open-meteo.com/v1/forecast?latitude=48.41882619003699&longitude=-71.05366624859137&current=temperature_2m,precipitation,wind_speed_10m";
-
-        using var client = _httpClientFactory.CreateClient();
-
-        JsonNode? node;
+        var (x, y) = location;
+        var request = $"https://api.open-meteo.com/v1/forecast?latitude={x}&longitude={y}&current=temperature_2m,precipitation,wind_speed_10m";
         
+        JsonNode? node;
         try
         {
+            using var client = _httpClientFactory.CreateClient();
             var response = await client.GetAsync(request, ct);
             node = await JsonNode.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
 
             if (node == null)
             {
-                _logger.LogWarning("Received payload is null");
-                return false;
+                const string message = "Received payload is null";
+                _logger.LogWarning(message);
+                return new Result(false, message);
             }
         }
         catch (Exception e)
         {
-            _logger.LogWarning(e, "Failed to fetch weather");
-            return false;
+            const string message = "Failed to fetch weather";
+            _logger.LogWarning(e, message);
+            return new Result(false, message);
         }
 
         try
         {
             var current = node["current"]!;
-            var temp = (double)current["temperature"]!;
+            var temp = (double)current["temperature_2m"]!;
             var precipitation = (double)current["precipitation"]!;
-            var wind = (double)current["windSpeed"]!;
+            var wind = (double)current["wind_speed_10m"]!;
 
-            return temp - 2.5 <= weather.temperature && weather.temperature <= temp + 2.5;
+            return new Result(temp - 2.5 <= weather.temperature && weather.temperature <= temp + 2.5);
         }
         catch (Exception e)
         {
-            _logger.LogWarning(e, "Failed to parse payload");
-            return false;
+            const string message = "Failed to parse payload";
+            _logger.LogWarning(e, message);
+            return new Result(false, message);
         }
     }
 }

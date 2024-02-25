@@ -1,3 +1,3 @@
 namespace Validation.Classes;
 
-public record Map(int[][] map);
+public record Map(List<List<int>> map);

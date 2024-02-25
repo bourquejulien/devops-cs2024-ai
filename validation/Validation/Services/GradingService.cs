@@ -1,3 +1,5 @@
+using Validation.Classes;
+
 namespace Validation.Services;
 
 public class GradingService
@@ -9,8 +11,8 @@ public class GradingService
         _logger = logger;
     }
 
-    public void SetStatus(string step, bool isSuccess, string? description = null)
+    public void SetStatus(string step, Result result)
     {
-        _logger.LogInformation("Status set at {} for step {} with description {}", step, isSuccess, description);
+        _logger.LogInformation("Status set at {} for step {} with description {}", step, result.IsSuccess, result.Description);
     }
 }

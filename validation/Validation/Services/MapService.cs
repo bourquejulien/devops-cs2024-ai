@@ -17,19 +17,19 @@ public class MapService
         _md5 = MD5.Create();
     }
 
-    public bool CheckMap(Map map, MapRequest mapRequest)
+    public Result CheckMap(Map map, MapRequest mapRequest)
     {
-        var isValid = ValidateMap(map, mapRequest);
-        _gradingService.SetStatus("map", isValid);
-        return isValid;
+        var result = ValidateMap(map, mapRequest);
+        _gradingService.SetStatus("map", result);
+        return result;
     }
 
-    private bool ValidateMap(Map map, MapRequest mapRequest)
+    private Result ValidateMap(Map map, MapRequest mapRequest)
     {
         var (x, y, size) = mapRequest;
         
-        var num = Math.Floor((x + y) * 1e5);
-        var digest = _md5.ComputeHash( System.Text.Encoding.ASCII.GetBytes(num.ToString(CultureInfo.InvariantCulture)));
+        var num = (long)Math.Floor((x + y) * 1e5);
+        var digest = _md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(num.ToString(CultureInfo.InvariantCulture)));
         
         for (var i = 0; i < size; ++i) {
             for (var j = 0; j < size; ++j) {
@@ -37,7 +37,7 @@ public class MapService
                 {
                     if (map.map[i][j] != 0)
                     {
-                        return false;
+                        return new Result(false, $"Mismatch at ({i}, {j})");
                     }
                     
                     continue;
@@ -48,11 +48,11 @@ public class MapService
 
                 if (map.map[i][j] != result)
                 {
-                    return false;
+                    return new Result(false, $"Mismatch at ({i}, {j})");
                 }
             }
         }
         
-        return true;
+        return new Result(true);
     }
 }
