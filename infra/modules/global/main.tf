@@ -47,12 +47,6 @@ resource "azurerm_storage_account" "table_account" {
   depends_on = [ azurerm_resource_group.global_rg ]
 }
 
-resource "azurerm_storage_table" "score_table" {
-  name                 = "scoretable"
-  storage_account_name = azurerm_storage_account.table_account.name
-  depends_on = [ azurerm_storage_account.table_account ]
-}
-
 resource "azurerm_container_registry" "registry" {
   name                     = "${lower(var.random_id)}"
   resource_group_name      = azurerm_resource_group.global_rg.name
