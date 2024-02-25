@@ -19,7 +19,16 @@ public class MapService
 
     public Result CheckMap(Map map, MapRequest mapRequest)
     {
-        var result = ValidateMap(map, mapRequest);
+        Result result;
+        try
+        {
+            result = ValidateMap(map, mapRequest);
+        }
+        catch (Exception)
+        {
+            result = new Result(false);
+        }
+        
         _gradingService.SetStatus("map", result);
         return result;
     }
