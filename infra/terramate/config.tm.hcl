@@ -1,6 +1,6 @@
 stack {
-  name        = "CS2023"
-  description = "CS2023 Devops Infra"
+  name        = "CS2024"
+  description = "CS2024 Devops Infra"
   id = "team-stack"
 }
 

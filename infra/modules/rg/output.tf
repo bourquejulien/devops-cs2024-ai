@@ -2,10 +2,6 @@ output "rg_name" {
   value = azurerm_resource_group.rg.name
 }
 
-output "table_endpoint" {
-  value = azurerm_storage_account.table_account.primary_table_endpoint
-}
-
 output "ai_kube_host" {
   value     = module.ai_cluster.kube_host
   sensitive = true

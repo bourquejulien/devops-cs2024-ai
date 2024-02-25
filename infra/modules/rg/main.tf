@@ -3,21 +3,6 @@ resource "azurerm_resource_group" "rg" {
   name     = format("%s-%s-rg", "CS", var.team_name)
 }
 
-resource "azurerm_storage_account" "table_account" {
-  name                     = "ta${var.team_name}${lower(var.random_id)}"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-  depends_on = [ azurerm_resource_group.rg ]
-}
-
-resource "azurerm_storage_table" "score_table" {
-  name                 = "scoretable"
-  storage_account_name = azurerm_storage_account.table_account.name
-  depends_on = [ azurerm_storage_account.table_account ]
-}
-
 resource "azurerm_virtual_network" "vnet" {
   name                = "aks-vnet"
   location            = azurerm_resource_group.rg.location

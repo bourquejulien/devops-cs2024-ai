@@ -12,44 +12,18 @@ generate_hcl "main.tf" {
       byte_length = 8
     }
 
-    resource "azurerm_resource_group" "global_rg" {
+    module "global_module" {
+      source = "../modules/global"
+
+      random_id = random_id.random.hex
       location = local.location
-      name     = "Global-rg"
-    }
+      domain_name = local.domain_name
+      dev_subdomain = local.dev_subdomain
+      dev_domain_name = local.dev_domain_name
 
-    resource "azurerm_dns_zone" "parent" {
-      name                = local.dev_domain_name
-      resource_group_name = azurerm_resource_group.global_rg.name
-
-      depends_on = [ azurerm_resource_group.global_rg ]
-    }
-
-    resource "azurerm_dns_txt_record" "validation_record" {
-      name                = "@"
-      zone_name           = azurerm_dns_zone.parent.name
-      resource_group_name = azurerm_resource_group.global_rg.name
-      ttl                 = 3600
-      
-      record {
-        value = "MS=ms96251819"
-      }
-
-      depends_on = [ azurerm_dns_zone.parent ]
-    }
-
-    resource "namecheap_domain_records" "namecheap_domain" {
-      domain = local.domain_name
-      mode = "OVERWRITE"
-      # nameservers = azurerm_dns_zone.parent.name_servers
-
-      record {
-        hostname = local.dev_subdomain
-        type = "NS"
-        address = tolist(azurerm_dns_zone.parent.name_servers)[0]
-        ttl = 60
-      }
-
-      depends_on = [ azurerm_dns_zone.parent  ]
+      # providers = {
+      #   namecheap = namecheap.namecheap
+      # }
     }
 
     module "team_module" {
@@ -63,11 +37,11 @@ generate_hcl "main.tf" {
 
       parent_dns = {
         main_dns_name = local.domain_name
-        name = azurerm_dns_zone.parent.name
-        rg_name = azurerm_resource_group.global_rg.name
+        name = module.global_module.parent_dns_name
+        rg_name = module.global_module.rg_name
       }
 
-      depends_on = [ azurerm_dns_zone.parent, azurerm_resource_group.global_rg]
+      depends_on = [module.global_module]
     }
 
     tm_dynamic "module" {
