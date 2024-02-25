@@ -17,6 +17,12 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "Validation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+
+#ENV TeamName
+#ENV TableStorageAccountName
+#ENV TableStorageAccountKey
+
+
 WORKDIR /app
 COPY Validation/passwords.txt .
 COPY Validation/passwords_hashed.txt .

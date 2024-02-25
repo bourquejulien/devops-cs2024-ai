@@ -6,13 +6,13 @@ namespace Validation.Classes;
 
 public class StatusEntity : ITableEntity
 {
-    public required string PartitionKey
+    public string PartitionKey
     {
         get => StepName;
         set => StepName = value;
     }
 
-    public required string RowKey { get; set; }
+    public required string RowKey {get; set; }
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 
@@ -31,12 +31,16 @@ public class StatusEntity : ITableEntity
         
         return new StatusEntity
         {
-            RowKey = stepName,
-            PartitionKey = now.DateTime.ToString(CultureInfo.InvariantCulture),
+            RowKey = GetRowKey(now.DateTime),
             Timestamp = now,
             StepName = stepName,
             IsSuccess = result.IsSuccess,
             Description = result.Description,
         };
-    } 
+    }
+
+    private static string GetRowKey(DateTime dateTime)
+    {
+        return $"{dateTime.Month}{dateTime.Day}{dateTime.Hour}{dateTime.Minute}";
+    }
 }

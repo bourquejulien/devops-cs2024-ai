@@ -16,7 +16,13 @@ container:
       value: "http://**:3000/"
     - name: BasePath
       value: "/"
-
+    - name: TeamName
+      value: "00"
+    - name: TableStorageAccountName
+      value: ""
+    - name: TableStorageAccountKey
+      value: ""
+      
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

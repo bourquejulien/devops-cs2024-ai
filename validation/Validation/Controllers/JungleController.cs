@@ -24,6 +24,8 @@ public class JungleController : Controller
     [HttpGet]
     public async Task<IActionResult> Get()
     {
+        _gradingService.SetStatus("status", new Result(false));
+
         using var httpClient = _httpClientFactory.CreateClient();
         var httpResponseMessage = await httpClient.GetAsync("http://jungle/status");
 
