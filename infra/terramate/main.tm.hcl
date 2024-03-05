@@ -20,10 +20,6 @@ generate_hcl "main.tf" {
       domain_name = local.domain_name
       dev_subdomain = local.dev_subdomain
       dev_domain_name = local.dev_domain_name
-
-      # providers = {
-      #   namecheap = namecheap.namecheap
-      # }
     }
 
     module "team_module" {
@@ -34,6 +30,8 @@ generate_hcl "main.tf" {
       random_id = random_id.random.hex
       team_name = each.value.id
       rg_location = local.location
+      ai_acr_id = module.global_module.ai_acr_id
+      team_user_password = each.value.config.password
 
       parent_dns = {
         main_dns_name = local.domain_name

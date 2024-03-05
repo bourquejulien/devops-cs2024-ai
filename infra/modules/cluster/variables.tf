@@ -33,6 +33,16 @@ variable "random_id" {
     description = "Random id to prevent name clashing."
 }
 
+variable "acr_id" {
+    type = string
+    description = "Acr id."
+}
+
+variable "team_user_id" {
+    type = string
+    description = "The id of the team user."
+}
+
 variable "is_team_cluster" {
     type = bool
     description = "True for team cluster, false for AI cluster."

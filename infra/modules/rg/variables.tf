@@ -14,6 +14,16 @@ variable "random_id" {
     description = "Random id to prevent name clashing."
 }
 
+variable "team_user_password" {
+    type = string
+    description = "Team user password."
+}
+
+variable "ai_acr_id" {
+    type = string
+    description = "Ai acr name."
+}
+
 variable "parent_dns" {
   type = object({
     main_dns_name = string

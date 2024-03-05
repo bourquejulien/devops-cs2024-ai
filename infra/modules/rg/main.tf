@@ -59,6 +59,21 @@ resource "azurerm_subnet" "team" {
   depends_on = [ azurerm_virtual_network.vnet ]
 }
 
+resource "azurerm_container_registry" "team_registry" {
+  name                     = "team${var.team_name}${lower(var.random_id)}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  sku                      = "Standard"
+  admin_enabled            = false
+}
+
+resource "azuread_user" "team_user" {
+  user_principal_name = "team${var.team_name}@${var.parent_dns.main_dns_name}"
+  display_name        = "Team${var.team_name}"
+  mail_nickname       = "Team${var.team_name}"
+  password            = var.team_user_password
+}
+
 module "team_cluster" {
   rg_name = azurerm_resource_group.rg.name
   rg_id = azurerm_resource_group.rg.id
@@ -67,6 +82,8 @@ module "team_cluster" {
   random_id = var.random_id
   side_name = "team"
   team_name = var.team_name
+  acr_id = azurerm_container_registry.team_registry.id
+  team_user_id = azuread_user.team_user.object_id
   source = "../cluster"
   is_team_cluster = true
   parent_dns = var.parent_dns
@@ -80,7 +97,9 @@ module "ai_cluster" {
   subnet_id = azurerm_subnet.ai.id
   random_id = var.random_id
   side_name = "ai"
+  acr_id = var.ai_acr_id
   team_name = var.team_name
+  team_user_id = ""
   source = "../cluster"
   is_team_cluster = false
   parent_dns = var.parent_dns

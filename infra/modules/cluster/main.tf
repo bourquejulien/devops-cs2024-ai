@@ -17,14 +17,6 @@ resource "azuread_service_principal_password" "app" {
   end_date = "2025-12-31T09:00:00Z"
 }
 
-resource "azuread_user" "team_user" {
-  count = var.is_team_cluster ? 1 : 0
-  user_principal_name = "team${var.team_name}@${var.parent_dns.main_dns_name}"
-  display_name        = "Team${var.team_name}"
-  mail_nickname       = "Team${var.team_name}"
-  password            = "SecretP@sswd99!"
-}
-
 # resource "azuread_application_federated_identity_credential" "federated_identity" {
 #   application_id = azuread_application.app.id
 #   display_name   = "Gitlab"
@@ -104,16 +96,8 @@ resource "azurerm_dns_a_record" "a_record" {
   depends_on = [ azurerm_public_ip.ip ]
 }
 
-resource "azurerm_container_registry" "registry" {
-  name                     = "${var.side_name}${var.team_name}${lower(var.random_id)}"
-  resource_group_name      = var.rg_name
-  location                 = var.rg_location
-  sku                      = "Standard"
-  admin_enabled            = false
-}
-
 resource "azurerm_role_assignment" "acr_role" {
-  scope                            = azurerm_container_registry.registry.id
+  scope                            = var.acr_id
   role_definition_name             = "Contributor"
   principal_id                     = azuread_service_principal.app.object_id
   skip_service_principal_aad_check = true
@@ -128,14 +112,14 @@ resource "azurerm_role_assignment" "aks_role" {
 
 resource "azurerm_role_assignment" "acr_role_user" {
   count = var.is_team_cluster ? 1 : 0
-  scope                            = azurerm_container_registry.registry.id
+  scope                            = var.acr_id
   role_definition_name             = "Contributor"
-  principal_id                     = azuread_user.team_user[0].object_id
+  principal_id                     = var.team_user_id
 }
 
 resource "azurerm_role_assignment" "aks_role_user" {
   count = var.is_team_cluster ? 1 : 0
   scope                            = azurerm_kubernetes_cluster.cluster.id
   role_definition_name             = "Contributor"
-  principal_id                     = azuread_user.team_user[0].object_id
+  principal_id                     = var.team_user_id
 }
