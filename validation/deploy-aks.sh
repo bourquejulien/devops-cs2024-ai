@@ -6,7 +6,7 @@ OK_COLOR="\e[1;32m"
 WARNING_COLOR="\e[3;31m"
 ENDCOLOR="\e[0m"
 
-DOMAIN_NAME=cs2024.one
+DOMAIN_NAME=dev.cs2024.one
 IMAGE_TAG="latest"
 PROJECT_NAME="validation"
 CLUSTER_NAME="ai"
