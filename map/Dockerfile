@@ -1,7 +1,10 @@
 ARG NAME=map
 
-FROM rust:1.75 as build
+FROM rust:1.75-alpine3.19 as build
 ARG NAME
+
+RUN apk add --no-cache musl-dev
+
 RUN USER=root cargo new --bin $NAME
 WORKDIR /$NAME
 
@@ -16,7 +19,7 @@ COPY ./src ./src
 RUN rm ./target/release/deps/$NAME*
 RUN cargo build --release
 
-FROM rust:1.75-slim-bookworm as final
+FROM alpine:3.19.1 as final
 ARG NAME
 EXPOSE 80
 
