@@ -25,7 +25,7 @@ resource "azurerm_dns_txt_record" "validation_record" {
 
 resource "namecheap_domain_records" "namecheap_domain" {
   domain = var.domain_name
-  mode = "OVERWRITE"
+  mode = "MERGE"
   # nameservers = azurerm_dns_zone.parent.name_servers
 
   record {

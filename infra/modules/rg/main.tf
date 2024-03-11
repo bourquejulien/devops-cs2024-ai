@@ -71,6 +71,7 @@ resource "azuread_user" "team_user" {
   user_principal_name = "team${var.team_name}@${var.parent_dns.main_dns_name}"
   display_name        = "Team${var.team_name}"
   mail_nickname       = "Team${var.team_name}"
+  preferred_language  = "en"
   password            = var.team_user_password
 }
 

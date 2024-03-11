@@ -88,6 +88,7 @@ resource "azurerm_kubernetes_cluster" "cluster" {
 }
 
 resource "azurerm_dns_a_record" "a_record" {
+  count = var.is_team_cluster ? 1 : 0
   name                = "@"
   zone_name           = azurerm_dns_zone.dns.name
   resource_group_name = var.rg_name
