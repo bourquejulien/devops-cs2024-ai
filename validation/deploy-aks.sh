@@ -36,9 +36,9 @@ deploy_to_aks () {
     VARIABLES+=("--set=image.tag=\"${IMAGE_TAG}\"")
     VARIABLES+=("--set=ingress.hosts[0].host=\"ai$1.${DOMAIN_NAME}\"")
 
-    VARIABLES+=("--set=container.env[2].value=\"$1\"")
-    VARIABLES+=("--set=container.env[3].value=\"${TABLE_NAME}\"")
-    VARIABLES+=("--set=container.env[4].value=\"${TABLE_KEY}\"")
+    VARIABLES+=("--set-string=container.env[2].value=\"$1\"")
+    VARIABLES+=("--set-string=container.env[3].value=\"${TABLE_NAME}\"")
+    VARIABLES+=("--set-string=container.env[4].value=\"${TABLE_KEY}\"")
 
     VARIABLES="$(IFS=" " ; echo "${VARIABLES[*]}")"
 
