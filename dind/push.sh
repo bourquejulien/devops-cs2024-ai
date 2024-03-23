@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-if [[ $EUID -ne 0 ]]; then
-   echo "Please run as root"
-   exit 1
-fi
-
 FORCE_LOGIN=false
 REGISTRY="index.docker.io/v1"
 BASE_PATH="brqu"
